@@ -41,27 +41,48 @@ One PR -> playwright.yml checks -> AI review -> human review and merge
 nightly.yml run -> report/artifacts -> failure analysis -> fix PR if needed
 ```
 
-The planner, generator, and healer workflow will be added incrementally. A healer may propose
-evidence-based locator or synchronization fixes, but must not weaken, remove, or bypass
+See [AI agents](#ai-agents) for the planner, generator and healer. A healer may only propose
+evidence-based locator or synchronisation fixes and must never weaken, remove or bypass
 assertions; its changes still require a human-reviewed PR.
 
 ## Project structure
 
 ```text
 .github/
-  workflows/              # playwright.yml (PR) and nightly.yml
+  agents/                 # Planner, generator and healer agents (Playwright MCP)
+  workflows/              # playwright.yml (PR), nightly.yml, copilot-setup-steps.yml
   copilot-instructions.md # AI implementation and review guardrails
+  pull_request_template.md, PULL_REQUEST_TEMPLATE/setup.md
+.vscode/mcp.json          # Playwright test MCP server used by the agents
 config/                   # Shared tag definitions
-docs/adr/                 # Architecture decisions
-jira-tasks/               # Ticket template and setup/feature records
+eslint-rules/             # Custom lint rules and their tests
+jira-tasks/               # Card and batch records, templates/
+scripts/                  # Test-case validator
+test-cases/               # <element>-handling.md plans (JIRA-015, JIRA-015.1 ...)
 src/
-  fixtures/               # Shared Playwright test entry point
-  pages/<element>/        # <Element>Page.ts + <Element>Page.assertions.ts
-  support/base/           # Base page and assertion classes
+  fixtures/               # Typed fixtures and the shared test entry point
+  pages/<element>/        # <element>.page.ts + <element>.assertions.ts
+  support/                # Base classes and env helpers
 tests/
-  <element>/              # One growing test file per element
-  setup/                  # Framework-health checks only
+  <element>-handling.test.ts  # One growing test file per element
+  setup/                  # Framework-health checks and the agent seed test
 ```
+
+## AI agents
+
+Three agents live in [.github/agents/](./.github/agents) and use the Playwright test MCP server
+(`.vscode/mcp.json`, started with `npx playwright run-test-mcp-server`; no extra dependency).
+Open the repo in VS Code and pick the agent in Copilot Chat.
+
+| Agent                       | Does                                                                                     | Never                                         |
+| --------------------------- | ---------------------------------------------------------------------------------------- | --------------------------------------------- |
+| `playwright-test-planner`   | Explores the pages and writes `test-cases/<element>-handling.md` and card files          | Writes code or opens PRs                      |
+| `playwright-test-generator` | Writes page, assertions, fixture and test code for approved cards; prepares one batch PR | Weakens assertions, skips tests, merges       |
+| `playwright-test-healer`    | Fixes locators and synchronisation on `<ID>-fix` branches, with evidence                 | Changes assertions or expected values, merges |
+
+Daily flow: planner writes the plan, a human approves it, generator implements the whole batch on
+one branch, then the PR goes through checks and human review.
+All three start from the seed test `tests/setup/seed.test.ts`.
 
 ## Planning artifacts
 
@@ -113,10 +134,10 @@ external Selenium Playground being available.
       workflow skeleton, and framework smoke test
 - [x] `SETUP-002` — custom lint rules (tags, assertions, no raw `page` in tests) with unit tests
 - [x] `SETUP-003` — reference page object, assertions class and typed fixtures (`src/pages/example/`)
-- [ ] Add the first Jira batch
 - [x] `SETUP-004` — card, batch and test-case templates with an ID validator
-- [ ] Add planner/generator/healer definitions and Playwright MCP with human approval gates
-- [ ] Add ticket planning and batch workflow automation
+- [x] `SETUP-005` — Playwright MCP config and planner/generator/healer agents with human approval gates
+- [ ] Add the first Jira batch (planner → approval → generator → one PR)
+- [ ] Add AI review and the 24h/48h stale-PR reminder
 - [ ] Add Allure reporting and publishable run history
 - [ ] Add failure triage and healer PR workflow
 
