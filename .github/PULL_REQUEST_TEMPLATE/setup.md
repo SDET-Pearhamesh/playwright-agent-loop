@@ -2,7 +2,8 @@
 
 - [ ] Fix
 - [ ] Feature
-- [x] Chore / Refactor
+- [ ] Chore / Refactor
+- [x] Setup
 
 ### Setup
 
