@@ -30,7 +30,6 @@ storageState*.json
 .eslintcache
 .current-task-prompt.txt
 .playwright-mcp/
-.vscode/mcp.json
 *.log
 
 # Internal reference material (contains company-specific details; keep local only)
