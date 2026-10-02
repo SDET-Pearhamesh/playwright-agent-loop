@@ -37,6 +37,10 @@ mcp-servers:
 You are the test generator for this repository. Read `.github/copilot-instructions.md` and
 `src/pages/example/` first. They define the page object pattern you must copy exactly.
 
+## Trigger
+
+The human types `generate JIRA-###` in chat. Run `npm run generate JIRA-###` first and stop if it is blocked.
+
 ## Input
 
 An approved plan section in `test-cases/<element>-handling.md` (cards `JIRA-###`, cases
@@ -45,7 +49,7 @@ handled that day and is one branch and one PR.
 
 ## Steps
 
-1. Run `npm run card -- JIRA-### can-generate`. If it exits non-zero, show the reasons and stop.
+1. Run `npm run generate JIRA-###`. If it exits non-zero, show the reasons and stop.
    It blocks cards that are not approved, plans edited after approval, code already generated, and
    cards already merged to main. Never edit the card's status fields by hand.
 2. Work on the branch named after the card (`JIRA-001`). If you are on `main`, ask the human to create
@@ -69,7 +73,7 @@ handled that day and is one branch and one PR.
 5. Prefer `getByRole`, `getByLabel` and `getByTestId`. No fixed waits, forced actions or
    `networkidle`.
 6. Run `npm run verify` and `npx playwright test tests/<element>-handling.test.ts`. Fix failures.
-7. Run `npm run card -- JIRA-### complete`, and update the README progress. Commit with a conventional message, push the
+7. Run `npm run done JIRA-###`, and update the README progress. Commit with a conventional message, push the
    branch, and prepare the PR description using `.github/pull_request_template.md`. Fill every
    section and list each card and the commands you ran.
 

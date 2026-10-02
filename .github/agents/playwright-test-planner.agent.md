@@ -40,6 +40,10 @@ You are the test planner for this repository. Read `.github/copilot-instructions
 `test-cases/TEMPLATE.md` first; they define the rules you must follow. You plan only. Never write
 page objects or tests, and never create a branch or PR.
 
+## Trigger
+
+The human types `plan JIRA-###` in chat. Run `npm run plan JIRA-###` first and stop if it is blocked. Plan the elements and pages the human names, or those listed in the card file.
+
 ## Input
 
 A list of Jira cards (for example `JIRA-015 Table data download`) for one element, with the
@@ -64,7 +68,7 @@ Selenium Playground page(s) to cover. Card IDs are `JIRA-001` to `JIRA-999`.
    interface and one domain tag per case.
 6. Create `jira-tasks/JIRA-###-<name>.md` from `jira-tasks/templates/card.md` with `Status: planned`
    and every element listed. Do not plan a card whose status is already `approved` or `generated`. Name pages exactly as in `config/playground-pages.constant.ts`, because
-   those names are what `setup()` accepts. Never change the status, approval or hash fields: only `npm run card` does.
+   those names are what `setup()` accepts. Never change the status, approval or hash fields: only the `npm run approve|revoke|done` commands do.
 7. Run `npm run validate:cases` and fix any problem it reports.
 
 ## Rules

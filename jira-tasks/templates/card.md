@@ -10,7 +10,7 @@ Branch: JIRA-000
 One card covers everything handled that day. One card is one branch and one PR.
 
 The `Status`, `Approved by`, `Approved on`, `Plan hash` and `Code generated on` lines are
-maintained by `npm run card -- JIRA-000 <command>`. Never edit them by hand.
+maintained by the `npm run approve|revoke|done JIRA-000` commands. Never edit them by hand.
 
 Flow: `planned` → (human) `approve` → `approved` → (generator) `complete` → `generated`.
 A generated card that is merged to main is locked. Changes go to `JIRA-000-fix`.

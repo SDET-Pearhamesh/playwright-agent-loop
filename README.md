@@ -28,10 +28,10 @@ One Jira card per day (JIRA-001, JIRA-002, ...) covering that day's elements
 Planner writes test cases for every element in the card
         |
         v
-Human runs: npm run card -- JIRA-001 approve (records name, date, plan fingerprint)
+Human runs: npm run approve JIRA-001 (records name, date, plan fingerprint)
         |
         v
-Generator (/jira-generate) implements all elements, only if every guard passes
+Generator agent (after npm run generate JIRA-001) implements all elements, only if every guard passes
         |
         v
 One PR -> playwright.yml checks -> AI review -> human review and merge
@@ -49,7 +49,6 @@ assertions; its changes still require a human-reviewed PR.
 ```text
 .github/
   agents/                 # Planner, generator and healer agents (Playwright MCP)
-  prompts/                # /jira-plan, /jira-generate, /jira-status commands
   workflows/              # playwright.yml (PR), nightly.yml, copilot-setup-steps.yml
   copilot-instructions.md # AI implementation and review guardrails
   pull_request_template.md, PULL_REQUEST_TEMPLATE/setup.md
@@ -112,15 +111,19 @@ browser tab title is not used to identify a page, because most pages share the s
 
 ## Card commands
 
-A card moves through guarded states. Each step is one command, and each guard blocks mistakes.
+Plain terminal commands. Replace `JIRA-001` with your card. Run them on the card's branch.
 
-| Step | Command                                       | Who             | What it does                                                                                                   |
-| ---- | --------------------------------------------- | --------------- | -------------------------------------------------------------------------------------------------------------- |
-| 1    | `/jira-plan JIRA-001` (Copilot Chat)          | Planner agent   | Writes test cases and the card file as `planned`                                                               |
-| 2    | `npm run card -- JIRA-001 approve` (terminal) | **Human only**  | Asks you to type the card ID, then records your git name, the date and a fingerprint of the plan as `approved` |
-| 3    | `/jira-generate JIRA-001` (Copilot Chat)      | Generator agent | Runs `can-generate` first, builds the code, then marks the card `generated`                                    |
-| -    | `npm run card -- JIRA-001 status`             | Anyone          | Shows state, case count and whether the plan changed                                                           |
-| -    | `npm run card -- JIRA-001 revoke`             | Human           | Returns an approved card to `planned` so the plan can be edited                                                |
+| Step | Command                     | Who            | What it does                                                                                                                                   |
+| ---- | --------------------------- | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1    | `npm run plan JIRA-001`     | Anyone         | Checks the card can be planned. Then, in Copilot Chat, pick the planner agent and type `plan JIRA-001`. It writes the test cases as `planned`. |
+| 2    | `npm run approve JIRA-001`  | **Human only** | Asks you to type the card ID, then records your git name, the date and a fingerprint of the plan as `approved`                                 |
+| 3    | `npm run generate JIRA-001` | Anyone         | Checks every guard. Then, in Copilot Chat, pick the generator agent and type `generate JIRA-001`. It builds the code and runs `npm run done`.  |
+| -    | `npm run status JIRA-001`   | Anyone         | Shows state, case count and whether the plan changed                                                                                           |
+| -    | `npm run revoke JIRA-001`   | Human          | Returns an approved card to `planned` so the plan can be edited                                                                                |
+| -    | `npm run done JIRA-001`     | Generator      | Marks the card `generated` once verify and tests pass                                                                                          |
+
+The planner and generator are Copilot agents, so the AI part is typed in Copilot Chat. Everything
+else is a terminal command.
 
 What the guards stop:
 

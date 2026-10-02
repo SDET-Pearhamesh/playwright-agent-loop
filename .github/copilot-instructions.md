@@ -13,8 +13,8 @@
   work. Fill every section with real details; do not leave placeholder text. Validation must state
   the commands run and their results.
 - Never edit a card's `Status`, `Approved by`, `Approved on`, `Plan hash` or `Code generated on`
-  lines. Only `npm run card -- JIRA-### <command>` changes them, and approval is human-only.
-- Never generate code unless `npm run card -- JIRA-### can-generate` succeeds.
+  lines. Only the `npm run approve|revoke|done JIRA-###` commands change them, and approval is human-only.
+- Never generate code unless `npm run generate JIRA-###` succeeds.
 - Never merge a PR. AI agents may review and propose changes only; human approval and merge are
   mandatory.
 - Group tests by element. Extend that element's existing test file for future cards rather than

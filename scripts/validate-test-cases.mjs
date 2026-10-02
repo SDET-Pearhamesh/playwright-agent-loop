@@ -131,7 +131,7 @@ export function validateCardFile(text, fileName, files) {
   }
   if (files && status === 'approved' && hash && hash !== planFingerprint(idFromName, files)) {
     problems.push(
-      `${fileName}: test cases changed after approval. Run: npm run card -- ${idFromName} revoke`,
+      `${fileName}: test cases changed after approval. Run: npm run revoke ${idFromName}`,
     );
   }
   return problems;

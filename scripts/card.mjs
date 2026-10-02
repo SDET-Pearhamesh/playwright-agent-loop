@@ -16,13 +16,14 @@ import {
 } from './card-lib.mjs';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
-const USAGE = `Usage: npm run card -- <JIRA-000> <status|approve|can-generate|complete|revoke>
+const USAGE = `Commands (run from the terminal):
 
-  status         show where the card is in the flow
-  approve        human only: confirm the plan and lock its fingerprint
-  can-generate   guard the generator runs first; exits non-zero when generation is not allowed
-  complete       generator runs this last: marks the card generated
-  revoke         human only: take back an approval so the plan can be edited`;
+  npm run plan JIRA-001       check the card can be planned, then tell the planner agent
+  npm run approve JIRA-001    human only: confirm the plan and lock it
+  npm run generate JIRA-001   check the card can be generated, then tell the generator agent
+  npm run done JIRA-001       generator runs this last: marks the card generated
+  npm run revoke JIRA-001     human only: take back an approval to edit the plan
+  npm run status JIRA-001     show where the card is`;
 
 const git = (...args) => {
   try {
@@ -77,10 +78,24 @@ async function confirm(cardId, summary) {
 }
 
 async function main() {
-  const [cardId, action] = process.argv.slice(2);
+  const [action, cardId] = process.argv.slice(2);
   if (!cardId || !CARD_ID.test(cardId) || !action) {
     process.stderr.write(`${USAGE}\n`);
     process.exit(2);
+  }
+  if (action === 'plan') {
+    const dir = join(root, 'jira-tasks');
+    const existing = readdirSync(dir).find((f) => f.startsWith(`${cardId}-`) && f.endsWith('.md'));
+    const branch = git('rev-parse', '--abbrev-ref', 'HEAD') ?? 'unknown';
+    const reasons = [];
+    if (branch !== cardId)
+      reasons.push(`You are on "${branch}". Switch to the branch named ${cardId} first.`);
+    if (existing && readField(readFileSync(join(dir, existing), 'utf8'), 'Status') !== 'planned') {
+      reasons.push(`${cardId} is already past planning. Run: npm run status ${cardId}`);
+    }
+    if (reasons.length > 0) fail(reasons);
+    process.stdout.write(`OK. In Copilot Chat, pick the planner agent and type: plan ${cardId}\n`);
+    return;
   }
   const { path, state } = load(cardId);
   const { files, cardText } = state;
@@ -104,8 +119,8 @@ async function main() {
 
   const gate = {
     approve: 'approve',
-    'can-generate': 'generate',
-    complete: 'complete',
+    generate: 'generate',
+    done: 'complete',
     revoke: 'revoke',
   }[action];
   if (!gate) {
@@ -115,8 +130,10 @@ async function main() {
   const reasons = checkAction({ ...state, action: gate });
   if (reasons.length > 0) fail(reasons);
 
-  if (action === 'can-generate') {
-    process.stdout.write(`OK: ${cardId} is approved and its plan (${hash}) is unchanged.\n`);
+  if (action === 'generate') {
+    process.stdout.write(
+      `OK: ${cardId} is approved and its plan (${hash}) is unchanged.\nIn Copilot Chat, pick the generator agent and type: generate ${cardId}\n`,
+    );
   } else if (action === 'approve') {
     const by = git('config', 'user.name');
     if (!by) fail(['Set your name first: git config user.name "Your Name"']);
@@ -133,10 +150,8 @@ async function main() {
         'Plan hash': hash,
       }),
     );
-    process.stdout.write(
-      `${cardId} approved by ${by}. Next: tell the generator "/jira-generate ${cardId}".\n`,
-    );
-  } else if (action === 'complete') {
+    process.stdout.write(`${cardId} approved by ${by}. Next: npm run generate ${cardId}\n`);
+  } else if (action === 'done') {
     writeFileSync(
       path,
       writeFields(cardText, { Status: 'generated', 'Code generated on': today() }),

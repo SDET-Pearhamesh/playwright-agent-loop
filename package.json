@@ -16,7 +16,12 @@
     "report:meta": "node scripts/write-build-meta.mjs",
     "dashboard:up": "docker compose up -d --build dashboard",
     "dashboard:down": "docker compose down",
-    "card": "node scripts/card.mjs",
+    "plan": "node scripts/card.mjs plan",
+    "approve": "node scripts/card.mjs approve",
+    "generate": "node scripts/card.mjs generate",
+    "done": "node scripts/card.mjs done",
+    "revoke": "node scripts/card.mjs revoke",
+    "status": "node scripts/card.mjs status",
     "validate:cases": "node scripts/validate-test-cases.mjs",
     "verify": "npm run format:check && npm run lint && npm run typecheck && npm run test:rules && npm run validate:cases",
     "prepare": "husky"
