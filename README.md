@@ -63,6 +63,13 @@ tests/
   setup/                  # Framework-health checks only
 ```
 
+## Planning artifacts
+
+- Cards: `jira-tasks/JIRA-###-<name>.md` from [card.md](./jira-tasks/templates/card.md).
+- Batches: [batch.md](./jira-tasks/templates/batch.md), one per daily PR.
+- Test cases: `test-cases/<element>-handling.md` from [TEMPLATE.md](./test-cases/TEMPLATE.md), with
+  `## JIRA-015` headings and `### JIRA-015.1` cases. `npm run validate:cases` checks the format.
+
 ## Adding a page object
 
 Follow `src/pages/example/`: `<element>.page.ts` holds public locators and actions,
@@ -107,7 +114,8 @@ external Selenium Playground being available.
 - [x] `SETUP-002` — custom lint rules (tags, assertions, no raw `page` in tests) with unit tests
 - [x] `SETUP-003` — reference page object, assertions class and typed fixtures (`src/pages/example/`)
 - [ ] Add the first Jira batch
-- [ ] Add planner/generator/healer definitions with human approval gates
+- [x] `SETUP-004` — card, batch and test-case templates with an ID validator
+- [ ] Add planner/generator/healer definitions and Playwright MCP with human approval gates
 - [ ] Add ticket planning and batch workflow automation
 - [ ] Add Allure reporting and publishable run history
 - [ ] Add failure triage and healer PR workflow
