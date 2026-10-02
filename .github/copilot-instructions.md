@@ -8,6 +8,10 @@
   criteria and coverage identifiable in the PR. Do not create one PR per element within a batch.
 - A single-card feature branch uses the ticket ID. A fix branch uses `<ID>-fix`, with an
   incrementing suffix for later fixes to the same card. Setup branches use their setup ID.
+- Every PR description must follow a template and keep its headings: `.github/pull_request_template.md`
+  for JIRA cards (including batch PRs) and `.github/PULL_REQUEST_TEMPLATE/setup.md` for `SETUP-###`
+  work. Fill every section with real details; do not leave placeholder text. Validation must state
+  the commands run and their results.
 - Never merge a PR. AI agents may review and propose changes only; human approval and merge are
   mandatory.
 - Group tests by element. Extend that element's existing test file for future cards rather than

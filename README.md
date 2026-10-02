@@ -63,6 +63,15 @@ tests/
   setup/                  # Framework-health checks only
 ```
 
+## Pull request format
+
+Every PR must use a template and keep its section headings (Type, Feature or Setup,
+Problem / Description, What was added, Scenarios covered, Validation):
+
+- JIRA cards and batches: [.github/pull_request_template.md](./.github/pull_request_template.md)
+- `SETUP-###` work: [.github/PULL_REQUEST_TEMPLATE/setup.md](./.github/PULL_REQUEST_TEMPLATE/setup.md)
+  (open with `?template=setup.md` on the compare URL)
+
 ## Getting started
 
 Requirements: Node.js 22 LTS or newer supported LTS, npm, and the Playwright Chromium browser.
