@@ -1,13 +1,29 @@
-# JIRA-000 — <Short title, e.g. Table data download>
+# JIRA-000 — <Short title for the day, e.g. Dropdown, tables and buttons>
 
-Status: planned | approved | in review | merged
-Element: <dropdown | bootstrap-elements | table | buttons | forms | frames | ...>
-Branch: JIRA-000 (or the batch branch, e.g. JIRA-000-to-JIRA-004)
-Page URL: <Selenium Playground page path>
+Status: planned
+Approved by: -
+Approved on: -
+Plan hash: -
+Code generated on: -
+Branch: JIRA-000
+
+One card covers everything handled that day. One card is one branch and one PR.
+
+The `Status`, `Approved by`, `Approved on`, `Plan hash` and `Code generated on` lines are
+maintained by `npm run card -- JIRA-000 <command>`. Never edit them by hand.
+
+Flow: `planned` → (human) `approve` → `approved` → (generator) `complete` → `generated`.
+A generated card that is merged to main is locked. Changes go to `JIRA-000-fix`.
 
 ## Description
 
-<What behaviour of the element is being handled and why.>
+<What is handled today and why.>
+
+## Elements covered
+
+| Element  | Playground pages     | Test cases file                   | Test file                         |
+| -------- | -------------------- | --------------------------------- | --------------------------------- |
+| dropdown | Select Dropdown List | `test-cases/dropdown-handling.md` | `tests/dropdown-handling.test.ts` |
 
 ## Acceptance criteria
 
@@ -16,4 +32,5 @@ Page URL: <Selenium Playground page path>
 
 ## Test cases
 
-See [test-cases/<element>-handling.md](../../test-cases/<element>-handling.md), section `JIRA-000`.
+Each element has its own file in `test-cases/`, with a `## JIRA-000` section. Case numbers run
+across the whole card (`JIRA-000.1`, `JIRA-000.2`, ...) and are never reused between elements.

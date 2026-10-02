@@ -1,7 +1,9 @@
 # <Element> handling — test cases
 
-One file per element. New cards for the same element add a new `##` section here, and their tests
-go into the same `tests/<element>-handling.test.ts` file.
+One file per element. A card (one day) that covers several elements has a `## JIRA-000` section in
+each element's file, with case numbers running across the whole card and never reused between files.
+Later cards for the same element add a new `##` section here, and their tests go into the same
+`tests/<element>-handling.test.ts` file.
 
 ## JIRA-000 — <Card title>
 

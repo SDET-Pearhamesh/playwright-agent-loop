@@ -9,6 +9,7 @@ test-results/
 blob-report/
 allure-results/
 allure-report/
+report-site/
 playwright/.cache/
 coverage/
 site/

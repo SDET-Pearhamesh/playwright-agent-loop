@@ -3,15 +3,18 @@
 - Use Playwright Test and TypeScript. Do not add Cucumber or another BDD layer.
 - Use `JIRA-001` through `JIRA-999` for feature cards and `SETUP-001` through `SETUP-999` for
   framework work. Preserve these IDs in plans, test cases, PR descriptions, and commits.
-- One approved daily batch produces one branch and one PR. For a contiguous range, use
-  `<first-ID>-to-<last-ID>` (for example, `JIRA-001-to-JIRA-005`). Keep per-card acceptance
-  criteria and coverage identifiable in the PR. Do not create one PR per element within a batch.
-- A single-card feature branch uses the ticket ID. A fix branch uses `<ID>-fix`, with an
+- One Jira card covers everything handled that day, however many elements that is. One card is one
+  branch (named after the ID) and one PR. Never split a card into one PR per element, and never
+  combine several cards in one branch.
+- A feature branch uses the card ID. A fix branch uses `<ID>-fix`, with an
   incrementing suffix for later fixes to the same card. Setup branches use their setup ID.
 - Every PR description must follow a template and keep its headings: `.github/pull_request_template.md`
-  for JIRA cards (including batch PRs) and `.github/PULL_REQUEST_TEMPLATE/setup.md` for `SETUP-###`
+  for JIRA cards and `.github/PULL_REQUEST_TEMPLATE/setup.md` for `SETUP-###`
   work. Fill every section with real details; do not leave placeholder text. Validation must state
   the commands run and their results.
+- Never edit a card's `Status`, `Approved by`, `Approved on`, `Plan hash` or `Code generated on`
+  lines. Only `npm run card -- JIRA-### <command>` changes them, and approval is human-only.
+- Never generate code unless `npm run card -- JIRA-### can-generate` succeeds.
 - Never merge a PR. AI agents may review and propose changes only; human approval and merge are
   mandatory.
 - Group tests by element. Extend that element's existing test file for future cards rather than
