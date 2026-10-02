@@ -3,5 +3,6 @@ playwright-report/
 test-results/
 allure-results/
 allure-report/
+report-site/
 package-lock.json
 service-providers-automation-docs.md

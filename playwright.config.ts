@@ -15,6 +15,7 @@ export default defineConfig({
   reporter: [
     ['list'],
     ['html', { open: 'never' }],
+    ['allure-playwright', { resultsDir: 'allure-results', detail: true, suiteTitle: false }],
     ['json', { outputFile: 'test-results/results.json' }],
   ],
   use: {

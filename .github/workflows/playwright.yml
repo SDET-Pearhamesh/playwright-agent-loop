@@ -41,6 +41,19 @@ jobs:
           CI: 'true'
           BASE_URL: ${{ vars.BASE_URL || 'https://www.testmuai.com/selenium-playground/' }}
 
+      - name: Record build metadata for the dashboard
+        if: always()
+        run: npm run report:meta
+
+      - name: Upload Allure results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-results-pr-${{ github.run_number }}
+          path: allure-results/
+          if-no-files-found: ignore
+          retention-days: 30
+
       - name: Upload test reports
         if: always()
         uses: actions/upload-artifact@v4
