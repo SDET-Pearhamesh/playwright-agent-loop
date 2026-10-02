@@ -22,6 +22,9 @@
   compose typed fixture modules as the framework grows; do not use broad `Function` fixture types.
 - Prefer role, label, and test-id locators. Do not use fixed waits, forced actions, focused tests,
   or unreviewed XPath selectors.
+- Lint enforces these rules (see `eslint-rules/`): every test has severity, duration, interface and
+  domain tags, every test asserts, tests do not call `page.*()` directly, and every public method
+  in `*.assertions.ts` contains `expect()`. Never disable them to get a test through.
 - Use test tags for severity, duration, interface, and element/domain. Keep their definitions in
   `config/tags.constant.ts`.
 - Use `test.step()` for meaningful multi-action flows that improve reports. Do not add meaningless

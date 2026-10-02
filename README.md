@@ -63,6 +63,12 @@ tests/
   setup/                  # Framework-health checks only
 ```
 
+## Lint rules
+
+Custom rules in [eslint-rules/](./eslint-rules) run with `npm run lint`: tests need all four tag
+groups (from `config/tags.constant.ts`) and an assertion, tests cannot call `page.*()` directly, and
+assertion methods must contain `expect()`. Rule tests: `npm run test:rules`.
+
 ## Pull request format
 
 Every PR must use a template and keep its section headings (Type, Feature or Setup,
@@ -91,6 +97,7 @@ external Selenium Playground being available.
 
 - [x] `SETUP-001` — Playwright/TypeScript foundation, conventions, quality gates, PR/nightly
       workflow skeleton, and framework smoke test
+- [x] `SETUP-002` — custom lint rules (tags, assertions, no raw `page` in tests) with unit tests
 - [ ] Add the Playwright element POM/fixture extension pattern and the first Jira card
 - [ ] Add planner/generator/healer definitions with human approval gates
 - [ ] Add ticket planning and batch workflow automation

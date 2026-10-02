@@ -3,6 +3,8 @@ import playwright from 'eslint-plugin-playwright';
 import prettier from 'eslint-config-prettier';
 import tseslint from 'typescript-eslint';
 
+import framework from './eslint-rules/index.mjs';
+
 export default tseslint.config(
   {
     ignores: [
@@ -49,6 +51,25 @@ export default tseslint.config(
       'playwright/no-force-option': 'error',
       'playwright/prefer-web-first-assertions': 'error',
     },
+  },
+  {
+    files: ['tests/**/*.test.ts'],
+    plugins: { framework },
+    rules: {
+      'framework/test-tags-required': 'error',
+      'framework/test-must-call-assert': 'error',
+    },
+  },
+  {
+    files: ['tests/**/*.test.ts'],
+    ignores: ['tests/setup/**'],
+    plugins: { framework },
+    rules: { 'framework/no-playwright-api-in-test': 'error' },
+  },
+  {
+    files: ['src/pages/**/*.assertions.ts'],
+    plugins: { framework },
+    rules: { 'framework/assert-method-must-expect': 'error' },
   },
   {
     files: ['src/pages/**/*.ts'],
