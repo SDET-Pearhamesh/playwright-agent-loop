@@ -1,0 +1,53 @@
+name: Nightly Playwright
+
+on:
+  schedule:
+    - cron: '30 20 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nightly-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  nightly:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Verify formatting, lint, and types
+        run: npm run verify
+
+      - name: Run full Playwright suite
+        run: npm test
+        env:
+          CI: 'true'
+          BASE_URL: ${{ vars.BASE_URL || 'https://www.testmuai.com/selenium-playground/' }}
+
+      - name: Upload nightly reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-results-${{ github.run_number }}
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
+          retention-days: 14

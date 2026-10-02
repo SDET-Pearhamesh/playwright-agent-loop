@@ -1,0 +1,41 @@
+# Dependencies and build output
+node_modules/
+dist/
+*.tsbuildinfo
+
+# Test output
+playwright-report/
+test-results/
+blob-report/
+allure-results/
+allure-report/
+playwright/.cache/
+coverage/
+site/
+
+# Secrets and credentials (only .env.example is tracked)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+.auth/
+playwright/.auth/
+storageState*.json
+*.har
+
+# Local tooling and AI-agent scratch files
+.eslintcache
+.current-task-prompt.txt
+.playwright-mcp/
+.vscode/mcp.json
+*.log
+
+# Internal reference material (contains company-specific details; keep local only)
+service-providers-automation-docs.md
+
+# OS and editor files
+.DS_Store
+.idea/
