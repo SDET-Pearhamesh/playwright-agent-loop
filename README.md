@@ -1,147 +1,110 @@
-# 🎭 PW-AI-Framework
+# Playwright Element Handling Framework
 
-> ## 🚧 WORK IN PROGRESS 🚧
-> **This project is under active development. Nothing here is final.**
-> Folders, scripts, and workflows mentioned below are **planned**, not necessarily built yet.
-> Check the [Progress Tracker](#-progress-tracker) to see what is actually done.
-> Commits land daily. Expect frequent changes.
+An AI-assisted Playwright + TypeScript project for practicing browser automation against the
+[LambdaTest Selenium Playground](https://www.testmuai.com/selenium-playground/). The framework
+uses page objects, separate assertion classes, fixtures, lint rules, and GitHub Actions. Every
+change is reviewed and merged by a human.
 
-![status](https://img.shields.io/badge/status-work%20in%20progress-orange)
-![playwright](https://img.shields.io/badge/Playwright-TypeScript-45ba4b)
-![ci](https://img.shields.io/badge/CI-GitHub%20Actions-2088FF)
-![docker](https://img.shields.io/badge/Docker-planned-2496ED)
+## Project conventions
 
-An AI-assisted, end-to-end test automation framework built with **Playwright + TypeScript + Docker + GitHub Actions + Playwright MCP + GitHub Copilot agents**.
+- Feature cards use sequential IDs `JIRA-001` through `JIRA-999`.
+- Framework-only work uses sequential IDs `SETUP-001` through `SETUP-999`.
+- A single-card feature branch is named exactly after its ID (for example, `JIRA-001`).
+- A multi-card daily batch uses one branch and one PR named for its covered range
+  (for example, `JIRA-001-to-JIRA-005`). Each card remains individually traceable in the PR.
+- A fix for a previously merged card uses `<ID>-fix` (for example, `JIRA-002-fix`). If the
+  same card needs another fix later, add a sequence suffix (for example, `JIRA-002-fix-2`).
+- Setup branches use their setup ID. Fixes to setup work use `<ID>-fix`.
+- No AI agent may merge a PR. A human must approve and merge every PR.
+- Test files are grouped by UI element, not by ticket. New cases for tables belong in the same
+  table-handling test file; each case and plan references its Jira ID.
+- Each element page object has an action/locator file and a separate assertion file.
 
-**Goal:** mimic a real project workflow. A "JIRA-style" task file goes in, and tests, reports, and fixes come out. Humans only **review**.
+## Workflow
 
-**Application under test:** [LambdaTest Selenium Playground](https://www.lambdatest.com/selenium-playground/)
-
----
-
-## 🎯 What we plan to build
-
-| # | Feature | Status |
-|---|---------|--------|
-| 1 | Playwright + TypeScript framework (no BDD / Cucumber) | 🔜 Planned |
-| 2 | Page Object Model with **2 files per page**: `XPage.ts` (locators + actions) and `XPage.assertions.ts` (assertions only) | 🔜 Planned |
-| 3 | Strict ESLint + Prettier + Husky + commit conventions | 🔜 Planned |
-| 4 | Playwright **Planner → Generator → Healer** agents | 🔜 Planned |
-| 5 | JIRA-style task intake: drop a `.md` file in `jira-tasks/` and the automation picks it up | 🔜 Planned |
-| 6 | Custom AI agents: code reviewer, README updater, nightly bug analyst | 🔜 Planned |
-| 7 | GitHub Actions: PR checks, nightly runs, auto issue creation on failure | 🔜 Planned |
-| 8 | Allure reports + custom dashboard (latest run + last 50 runs) | 🔜 Planned |
-| 9 | Docker: containerised tests and dashboard, shareable via a simple link | 🔜 Planned |
-| 10 | One new UI element covered **every day** (Dropdown, Radio, Alerts, Broken links, Broken images...) | 🔜 Planned |
-
----
-
-## 🧭 Rough sketch of the framework
-
-```
- jira-tasks/PW-001-dropdown.md      ← task dropped here (acts like a JIRA ticket)
-              │
-              ▼
-   GitHub Action: task intake       ← "ticket moved to In Progress"
-              │
-              ▼
-   🧠 Planner agent                 → specs/PW-001.plan.md
-   (reads description, steps, acceptance criteria, deliverables)
-              │
-              ▼
-   ⚙️ Generator agent               → Page Object + Assertions + Tests
-              │
-              ▼
-   Pull Request → CI (lint, typecheck, tests) → AI code review → 👤 Human review → Merge
-              │
-              ▼
-   🌙 Nightly run → Allure report → Dashboard (latest + last 50)
-              │ on failure
-              ▼
-   🔍 Bug-analyst agent → Issue → 🩹 Healer agent → Fix PR → 👤 Human review
+```text
+One or more Jira cards
+        |
+        v
+Planner creates a plan and test cases for each card
+        |
+        v
+Human approves the batch plan
+        |
+        v
+Generator implements all approved cards on one batch branch
+        |
+        v
+One PR -> playwright.yml checks -> AI review -> human review and merge
+        |
+        v
+nightly.yml run -> report/artifacts -> failure analysis -> fix PR if needed
 ```
 
----
+The planner, generator, and healer workflow will be added incrementally. A healer may propose
+evidence-based locator or synchronization fixes, but must not weaken, remove, or bypass
+assertions; its changes still require a human-reviewed PR.
 
-## 📁 Planned project structure
+## Project structure
 
-```
+```text
 .github/
-  agents/                  # planner, generator, healer + custom agents
-  workflows/               # ci, nightly, task-intake
-  copilot-instructions.md  # rules for AI agents
-jira-tasks/                # 📥 task files (JIRA simulation)
-specs/                     # test plans created by the planner
+  workflows/              # playwright.yml (PR) and nightly.yml
+  copilot-instructions.md # AI implementation and review guardrails
+config/                   # Shared tag definitions
+docs/adr/                 # Architecture decisions
+jira-tasks/               # Ticket template and setup/feature records
 src/
-  base/                    # BasePage
-  fixtures/                # custom Playwright fixtures
-  pages/<element>/         # XPage.ts + XPage.assertions.ts
-  utils/
-tests/<element>/           # *.spec.ts
-scripts/                   # task and dashboard scripts
-dashboard/                 # report dashboard UI
-docker/                    # Dockerfiles + compose
-docs/adr/                  # architecture decisions
+  fixtures/               # Shared Playwright test entry point
+  pages/<element>/        # <Element>Page.ts + <Element>Page.assertions.ts
+  support/base/           # Base page and assertion classes
+tests/
+  <element>/              # One growing test file per element
+  setup/                  # Framework-health checks only
 ```
 
----
+## Pull request format
 
-## 🧱 Planned tech stack
+Every PR must use a template and keep its section headings (Type, Feature or Setup,
+Problem / Description, What was added, Scenarios covered, Validation):
 
-- **Test framework:** Playwright, TypeScript
-- **Design pattern:** Page Object Model (actions and assertions split in separate files)
-- **Code quality:** ESLint (strict), Prettier, Husky, lint-staged, commitlint
-- **AI:** Playwright Test Agents (planner, generator, healer), Playwright MCP, GitHub Copilot custom agents
-- **CI/CD:** GitHub Actions (PR checks and nightly runs)
-- **Reporting:** Allure, custom dashboard on GitHub Pages
-- **Containers:** Docker, Docker Compose
+- JIRA cards and batches: [.github/pull_request_template.md](./.github/pull_request_template.md)
+- `SETUP-###` work: [.github/PULL_REQUEST_TEMPLATE/setup.md](./.github/PULL_REQUEST_TEMPLATE/setup.md)
+  (open with `?template=setup.md` on the compare URL)
 
----
+## Getting started
 
-## 🧪 Daily automation loop (planned)
+Requirements: Node.js 22 LTS or newer supported LTS, npm, and the Playwright Chromium browser.
 
-1. Add a task for today's UI element (Dropdown, Radio buttons, Checkboxes, Alerts, Broken links, Broken images, ...)
-2. The planner creates a test plan covering every way to handle the element
-3. The generator writes the page objects and tests, one set per strategy
-4. The PR gets an AI review, then a human review, then merge
-5. The nightly run publishes a report, and the healer fixes any failures
-6. Repeat tomorrow with a new element
+```bash
+npm ci
+cp .env.example .env      # then set BASE_URL
+npx playwright install chromium
+npm run verify
+npm test
+```
 
----
+The local framework-health smoke test uses a blank browser page and does not depend on the
+external Selenium Playground being available.
 
-## 📊 Progress tracker
+## Current progress
 
-- [x] Repository created
-- [ ] Project scaffold (Playwright + TypeScript)
-- [ ] ESLint, Prettier, Git hooks
-- [ ] Page Object convention + fixtures
-- [ ] Playwright agents (planner, generator, healer)
-- [ ] JIRA-style task intake
-- [ ] CI workflow
-- [ ] Allure + dashboard + Docker
-- [ ] GitHub Pages publishing (latest + last 50)
-- [ ] Nightly run + failure analysis loop
-- [ ] Custom agents (README updater, code reviewer)
-- [ ] Daily UI element automation begins
+- [x] `SETUP-001` — Playwright/TypeScript foundation, conventions, quality gates, PR/nightly
+      workflow skeleton, and framework smoke test
+- [ ] Add the Playwright element POM/fixture extension pattern and the first Jira card
+- [ ] Add planner/generator/healer definitions with human approval gates
+- [ ] Add ticket planning and batch workflow automation
+- [ ] Add Allure reporting and publishable run history
+- [ ] Add failure triage and healer PR workflow
 
-### UI elements coverage
+## Security
 
-| Element | Task | Status |
-|---------|------|--------|
-| Dropdown | PW-001 | ⏳ Not started |
-| Radio buttons | PW-002 | ⏳ Not started |
-| Checkboxes | PW-003 | ⏳ Not started |
-| Broken links | PW-004 | ⏳ Not started |
-| Broken images | PW-005 | ⏳ Not started |
+- Configuration comes from environment variables. Copy `.env.example` to `.env` locally; `.env`
+  is git-ignored and must never be committed.
+- Store credentials only in GitHub secrets, and non-secret settings (such as `BASE_URL`) in
+  GitHub variables.
+- Do not add private URLs, credentials, or company-specific material to this repository.
 
----
-
-## ⚠️ Disclaimer
-
-- This is a **learning and portfolio project** and not production software.
-- All commands, folders, and workflows above describe the **target state** and will be added step by step.
-- AI generates code, but **every change is reviewed by a human** before merging.
-
-## 📄 License
+## License
 
 MIT
