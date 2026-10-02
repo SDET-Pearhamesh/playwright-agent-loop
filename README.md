@@ -63,6 +63,13 @@ tests/
   setup/                  # Framework-health checks only
 ```
 
+## Adding a page object
+
+Follow `src/pages/example/`: `<element>.page.ts` holds public locators and actions,
+`<element>.assertions.ts` holds every `expect()`, and tests call `<element>Page.assert.*`. Register the
+page in `src/fixtures/pages.fixtures.ts`. Steps are in
+[jira-tasks/SETUP-003-page-object-pattern.md](./jira-tasks/SETUP-003-page-object-pattern.md).
+
 ## Lint rules
 
 Custom rules in [eslint-rules/](./eslint-rules) run with `npm run lint`: tests need all four tag
@@ -98,7 +105,8 @@ external Selenium Playground being available.
 - [x] `SETUP-001` — Playwright/TypeScript foundation, conventions, quality gates, PR/nightly
       workflow skeleton, and framework smoke test
 - [x] `SETUP-002` — custom lint rules (tags, assertions, no raw `page` in tests) with unit tests
-- [ ] Add the Playwright element POM/fixture extension pattern and the first Jira card
+- [x] `SETUP-003` — reference page object, assertions class and typed fixtures (`src/pages/example/`)
+- [ ] Add the first Jira batch
 - [ ] Add planner/generator/healer definitions with human approval gates
 - [ ] Add ticket planning and batch workflow automation
 - [ ] Add Allure reporting and publishable run history
