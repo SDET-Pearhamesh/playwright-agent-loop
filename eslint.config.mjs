@@ -46,6 +46,8 @@ export default tseslint.config(
     ...playwright.configs['flat/recommended'],
     rules: {
       ...playwright.configs['flat/recommended'].rules,
+      // Covered by framework/test-must-call-assert, which understands `page.assert.*`.
+      'playwright/expect-expect': 'off',
       'playwright/no-wait-for-timeout': 'error',
       'playwright/no-focused-test': 'error',
       'playwright/no-force-option': 'error',
