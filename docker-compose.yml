@@ -1,0 +1,11 @@
+services:
+  dashboard:
+    build: ./docker/dashboard
+    ports:
+      - '${DASHBOARD_PORT:-8088}:80'
+    environment:
+      DASHBOARD_USER: ${DASHBOARD_USER:?Set DASHBOARD_USER in .env}
+      DASHBOARD_PASSWORD: ${DASHBOARD_PASSWORD:?Set DASHBOARD_PASSWORD in .env}
+    volumes:
+      - ./report-site:/usr/share/nginx/data:ro
+    restart: unless-stopped

@@ -9,7 +9,7 @@
 
 Related to [JIRA-001](https://example.com/JIRA-001)
 
-<!-- Batch PR: list every card, e.g. JIRA-001 to JIRA-005, one line each. -->
+<!-- One card is one PR, even when it covers several elements. List each element under "What was added". -->
 
 ### Problem / Description
 

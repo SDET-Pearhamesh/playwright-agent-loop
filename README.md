@@ -9,9 +9,8 @@ change is reviewed and merged by a human.
 
 - Feature cards use sequential IDs `JIRA-001` through `JIRA-999`.
 - Framework-only work uses sequential IDs `SETUP-001` through `SETUP-999`.
-- A single-card feature branch is named exactly after its ID (for example, `JIRA-001`).
-- A multi-card daily batch uses one branch and one PR named for its covered range
-  (for example, `JIRA-001-to-JIRA-005`). Each card remains individually traceable in the PR.
+- One Jira card covers everything handled that day, however many elements that is. One card is
+  one branch (named exactly after its ID, for example `JIRA-001`) and one PR.
 - A fix for a previously merged card uses `<ID>-fix` (for example, `JIRA-002-fix`). If the
   same card needs another fix later, add a sequence suffix (for example, `JIRA-002-fix-2`).
 - Setup branches use their setup ID. Fixes to setup work use `<ID>-fix`.
@@ -23,16 +22,16 @@ change is reviewed and merged by a human.
 ## Workflow
 
 ```text
-One or more Jira cards
+One Jira card per day (JIRA-001, JIRA-002, ...) covering that day's elements
         |
         v
-Planner creates a plan and test cases for each card
+Planner writes test cases for every element in the card
         |
         v
-Human approves the batch plan
+Human runs: npm run approve JIRA-001 (records name, date, plan fingerprint)
         |
         v
-Generator implements all approved cards on one batch branch
+Generator agent (after npm run generate JIRA-001) implements all elements, only if every guard passes
         |
         v
 One PR -> playwright.yml checks -> AI review -> human review and merge
@@ -56,8 +55,10 @@ assertions; its changes still require a human-reviewed PR.
 .vscode/mcp.json          # Playwright test MCP server used by the agents
 config/                   # Shared tag definitions
 eslint-rules/             # Custom lint rules and their tests
-jira-tasks/               # Card and batch records, templates/
-scripts/                  # Test-case validator
+jira-tasks/               # JIRA card records (created by the planner), templates/
+scripts/                  # Card commands, test-case validator, report publisher
+docker/dashboard/         # Password-protected Allure dashboard (nginx)
+docker-compose.yml        # Dashboard service
 test-cases/               # <element>-handling.md plans (JIRA-015, JIRA-015.1 ...)
 src/
   fixtures/               # Typed fixtures and the shared test entry point
@@ -74,29 +75,88 @@ Three agents live in [.github/agents/](./.github/agents) and use the Playwright 
 (`.vscode/mcp.json`, started with `npx playwright run-test-mcp-server`; no extra dependency).
 Open the repo in VS Code and pick the agent in Copilot Chat.
 
-| Agent                       | Does                                                                                     | Never                                         |
-| --------------------------- | ---------------------------------------------------------------------------------------- | --------------------------------------------- |
-| `playwright-test-planner`   | Explores the pages and writes `test-cases/<element>-handling.md` and card files          | Writes code or opens PRs                      |
-| `playwright-test-generator` | Writes page, assertions, fixture and test code for approved cards; prepares one batch PR | Weakens assertions, skips tests, merges       |
-| `playwright-test-healer`    | Fixes locators and synchronisation on `<ID>-fix` branches, with evidence                 | Changes assertions or expected values, merges |
+| Agent                       | Does                                                                                      | Never                                         |
+| --------------------------- | ----------------------------------------------------------------------------------------- | --------------------------------------------- |
+| `playwright-test-planner`   | Explores the pages and writes `test-cases/<element>-handling.md` and card files           | Writes code or opens PRs                      |
+| `playwright-test-generator` | Writes page, assertions, fixture and test code for approved cards; prepares the card's PR | Weakens assertions, skips tests, merges       |
+| `playwright-test-healer`    | Fixes locators and synchronisation on `<ID>-fix` branches, with evidence                  | Changes assertions or expected values, merges |
 
-Daily flow: planner writes the plan, a human approves it, generator implements the whole batch on
-one branch, then the PR goes through checks and human review.
+Daily flow: planner writes the test cases for the day's card, a human approves them, generator
+implements every element on the card branch, then the one PR goes through checks and human review.
 All three start from the seed test `tests/setup/seed.test.ts`.
 
 ## Planning artifacts
 
-- Cards: `jira-tasks/JIRA-###-<name>.md` from [card.md](./jira-tasks/templates/card.md).
-- Batches: [batch.md](./jira-tasks/templates/batch.md), one per daily PR.
+- Cards: `jira-tasks/JIRA-###-<name>.md` from [card.md](./jira-tasks/templates/card.md), one per
+  day, listing every element covered.
 - Test cases: `test-cases/<element>-handling.md` from [TEMPLATE.md](./test-cases/TEMPLATE.md), with
   `## JIRA-015` headings and `### JIRA-015.1` cases. `npm run validate:cases` checks the format.
+
+## The `setup` fixture
+
+Every Playground test starts with `setup(pageName)` from `src/fixtures/test.ts`:
+
+```ts
+test('...', { tag: [...] }, async ({ setup, tablePage }) => {
+  await setup('Table Data Download');
+  // test code
+});
+```
+
+`setup` opens the Playground and asserts the landing title ("Selenium Grid Online | Run Selenium
+Test On Cloud"), opens the named page, then asserts the URL and the page heading. The test body
+runs after it. Playwright closes the browser and context after every test, pass or fail.
+Valid names, paths and headings live in `config/playground-pages.constant.ts` (44 pages). The
+browser tab title is not used to identify a page, because most pages share the same one.
+
+## Card commands
+
+Plain terminal commands. Replace `JIRA-001` with your card. Run them on the card's branch.
+
+| Step | Command                     | Who            | What it does                                                                                                                                   |
+| ---- | --------------------------- | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1    | `npm run plan JIRA-001`     | Anyone         | Checks the card can be planned. Then, in Copilot Chat, pick the planner agent and type `plan JIRA-001`. It writes the test cases as `planned`. |
+| 2    | `npm run approve JIRA-001`  | **Human only** | Asks you to type the card ID, then records your git name, the date and a fingerprint of the plan as `approved`                                 |
+| 3    | `npm run generate JIRA-001` | Anyone         | Checks every guard. Then, in Copilot Chat, pick the generator agent and type `generate JIRA-001`. It builds the code and runs `npm run done`.  |
+| -    | `npm run status JIRA-001`   | Anyone         | Shows state, case count and whether the plan changed                                                                                           |
+| -    | `npm run revoke JIRA-001`   | Human          | Returns an approved card to `planned` so the plan can be edited                                                                                |
+| -    | `npm run done JIRA-001`     | Generator      | Marks the card `generated` once verify and tests pass                                                                                          |
+
+The planner and generator are Copilot agents, so the AI part is typed in Copilot Chat. Everything
+else is a terminal command.
+
+What the guards stop:
+
+- Generating from a plan nobody approved. Approval needs an interactive terminal, so an agent cannot do it.
+- Generating from a plan edited after approval. The fingerprint no longer matches, so you must approve again. CI (`validate:cases`) fails an approved card whose plan changed.
+- Approving or generating from the wrong branch. You must be on the branch named after the card.
+- Generating twice. A `generated` card is refused, and a card already generated on `main` is locked. Use `JIRA-001-fix` for later changes.
+
+The five status lines in a card file are managed by these commands only. Do not edit them by hand.
+
+## Test reports dashboard
+
+Tests write Allure results (`allure-results/`). Each published run becomes a numbered build in a
+password-protected dashboard served by Docker, with a build dropdown (Latest or any build number),
+summary cards, a pass-rate trend and the full Allure report.
+
+```bash
+# one-off: put DASHBOARD_USER and DASHBOARD_PASSWORD in .env (see .env.example)
+npm test                      # writes allure-results/
+npm run report:publish        # creates the next build in report-site/
+npm run dashboard:up          # http://localhost:8088, log in with the .env credentials
+```
+
+Pipeline runs upload an `allure-results-*` artifact (30 days). To add a CI run to the dashboard,
+download the artifact zip and run `npm run report:publish -- --zip <file.zip>`. Java is required to
+build reports locally. Stop the dashboard with `npm run dashboard:down`. `report-site/` is
+git-ignored, and credentials live only in `.env`.
 
 ## Adding a page object
 
 Follow `src/pages/example/`: `<element>.page.ts` holds public locators and actions,
 `<element>.assertions.ts` holds every `expect()`, and tests call `<element>Page.assert.*`. Register the
-page in `src/fixtures/pages.fixtures.ts`. Steps are in
-[jira-tasks/SETUP-003-page-object-pattern.md](./jira-tasks/SETUP-003-page-object-pattern.md).
+page in `src/fixtures/pages.fixtures.ts`.
 
 ## Lint rules
 
@@ -109,7 +169,7 @@ assertion methods must contain `expect()`. Rule tests: `npm run test:rules`.
 Every PR must use a template and keep its section headings (Type, Feature or Setup,
 Problem / Description, What was added, Scenarios covered, Validation):
 
-- JIRA cards and batches: [.github/pull_request_template.md](./.github/pull_request_template.md)
+- JIRA cards: [.github/pull_request_template.md](./.github/pull_request_template.md)
 - `SETUP-###` work: [.github/PULL_REQUEST_TEMPLATE/setup.md](./.github/PULL_REQUEST_TEMPLATE/setup.md)
   (open with `?template=setup.md` on the compare URL)
 
@@ -134,11 +194,13 @@ external Selenium Playground being available.
       workflow skeleton, and framework smoke test
 - [x] `SETUP-002` — custom lint rules (tags, assertions, no raw `page` in tests) with unit tests
 - [x] `SETUP-003` — reference page object, assertions class and typed fixtures (`src/pages/example/`)
-- [x] `SETUP-004` — card, batch and test-case templates with an ID validator
+- [x] `SETUP-004` — card and test-case templates with an ID validator
 - [x] `SETUP-005` — Playwright MCP config and planner/generator/healer agents with human approval gates
-- [ ] Add the first Jira batch (planner → approval → generator → one PR)
+- [x] `SETUP-006` — `setup` fixture, page registry, one card per day, approval fields
+- [x] `SETUP-007` — guarded card commands (plan, approve, generate) and fingerprinting
+- [x] `SETUP-008` — Allure reporting and password-protected Docker dashboard
+- [ ] `JIRA-001` — first card (planner → approval → generator → one PR)
 - [ ] Add AI review and the 24h/48h stale-PR reminder
-- [ ] Add Allure reporting and publishable run history
 - [ ] Add failure triage and healer PR workflow
 
 ## Security
