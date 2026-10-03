@@ -9,7 +9,7 @@ const files = {
   'table-handling.md': '## JIRA-001 — Day\n### JIRA-001.2 — C\n### JIRA-001.3 — D\n',
 };
 const cardWith = (status, hash = '-') =>
-  `# JIRA-001 — Day\nStatus: ${status}\nApproved by: -\nApproved on: -\nPlan hash: ${hash}\nCode generated on: -\n`;
+  `# JIRA-001 — Day\n\n**Status:** ${status}\n\n**Approved by:** -\n\n**Approved on:** -\n\n**Plan hash:** ${hash}\n\n**Code generated on:** -\n`;
 const base = { cardId: 'JIRA-001', branch: 'JIRA-001', mainCardText: null, files };
 
 describe('plan fingerprint', () => {
@@ -86,6 +86,6 @@ describe('fields', () => {
     const text = cardWith('planned');
     assert.equal(readField(text, 'Status'), 'planned');
     assert.equal(readField(writeFields(text, { Status: 'approved' }), 'Status'), 'approved');
-    assert.throws(() => writeFields(text, { Nope: 'x' }), /no "Nope:"/);
+    assert.throws(() => writeFields(text, { Nope: 'x' }), /no "\*\*Nope:\*\*"/);
   });
 });

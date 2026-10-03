@@ -22,6 +22,7 @@
     "done": "node scripts/card.mjs done",
     "revoke": "node scripts/card.mjs revoke",
     "status": "node scripts/card.mjs status",
+    "board": "node scripts/card.mjs board",
     "validate:cases": "node scripts/validate-test-cases.mjs",
     "verify": "npm run format:check && npm run lint && npm run typecheck && npm run test:rules && npm run validate:cases",
     "prepare": "husky"

@@ -7,6 +7,7 @@ import { URL, fileURLToPath } from 'node:url';
 
 import {
   CARD_ID,
+  cardSummary,
   checkAction,
   countCases,
   planFingerprint,
@@ -23,7 +24,8 @@ const USAGE = `Commands (run from the terminal):
   npm run generate JIRA-001   check the card can be generated, then tell the generator agent
   npm run done JIRA-001       generator runs this last: marks the card generated
   npm run revoke JIRA-001     human only: take back an approval to edit the plan
-  npm run status JIRA-001     show where the card is`;
+  npm run status JIRA-001     show where the card is
+  npm run board              show all cards and their status`;
 
 const git = (...args) => {
   try {
@@ -77,12 +79,45 @@ async function confirm(cardId, summary) {
   if (answer.trim() !== cardId) fail(['Approval cancelled.']);
 }
 
+function showBoard() {
+  const dir = join(root, 'jira-tasks');
+  const casesDir = join(root, 'test-cases');
+  const allCases = Object.fromEntries(
+    readdirSync(casesDir)
+      .filter((f) => f.endsWith('.md') && f !== 'TEMPLATE.md')
+      .map((f) => [f, readFileSync(join(casesDir, f), 'utf8')]),
+  );
+  const cardFiles = readdirSync(dir)
+    .filter((f) => f.match(/^JIRA-\d{3}-/))
+    .sort();
+
+  process.stdout.write(`\n📊 JIRA Status Board\n${'='.repeat(80)}\n`);
+  for (const file of cardFiles) {
+    const text = readFileSync(join(dir, file), 'utf8');
+    const cardId = file.match(/^(JIRA-\d{3})/)[1];
+    const cases = countCases(cardId, allCases);
+    const summary = cardSummary(cardId, text, cases);
+    const status = readField(text, 'Status');
+    const icon = status === 'generated' ? '✅' : status === 'approved' ? '🔒' : '📝';
+    process.stdout.write(`${icon} ${summary}\n`);
+  }
+  process.stdout.write(`${'='.repeat(80)}\n\n`);
+}
+
 async function main() {
   const [action, cardId] = process.argv.slice(2);
-  if (!cardId || !CARD_ID.test(cardId) || !action) {
-    process.stderr.write(`${USAGE}\n`);
-    process.exit(2);
+  if (!cardId && action !== 'board') {
+    if (!action || !CARD_ID.test(cardId)) {
+      process.stderr.write(`${USAGE}\n`);
+      process.exit(2);
+    }
   }
+
+  if (action === 'board') {
+    showBoard();
+    return;
+  }
+
   if (action === 'plan') {
     const dir = join(root, 'jira-tasks');
     const existing = readdirSync(dir).find((f) => f.startsWith(`${cardId}-`) && f.endsWith('.md'));
@@ -150,13 +185,13 @@ async function main() {
         'Plan hash': hash,
       }),
     );
-    process.stdout.write(`${cardId} approved by ${by}. Next: npm run generate ${cardId}\n`);
+    process.stdout.write(`\n✅ ${cardId} approved by ${by}. Next: npm run generate ${cardId}\n`);
   } else if (action === 'done') {
     writeFileSync(
       path,
       writeFields(cardText, { Status: 'generated', 'Code generated on': today() }),
     );
-    process.stdout.write(`${cardId} marked generated.\n`);
+    process.stdout.write(`\n✅ ${cardId} marked generated.\n`);
   } else {
     writeFileSync(
       path,
@@ -167,7 +202,7 @@ async function main() {
         'Plan hash': '-',
       }),
     );
-    process.stdout.write(`${cardId} is planned again. Edit the test cases, then approve.\n`);
+    process.stdout.write(`\n🔓 ${cardId} revoked. Edit the test cases, then approve.\n`);
   }
 }
 

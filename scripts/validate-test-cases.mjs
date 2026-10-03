@@ -89,12 +89,16 @@ export function findCrossFileDuplicates(filesByName) {
 export function validateCardFile(text, fileName, files) {
   const problems = [];
   const idFromName = /^(JIRA-\d{3})-/.exec(fileName)?.[1];
-  const title = /^# (JIRA-\d{3}) — \S.*$/m.exec(text);
-  if (!title) problems.push(`${fileName}: first heading must look like "# JIRA-001 — Title"`);
+  const title = /^# (JIRA-\d{3})[:\s—].*$/m.exec(text);
+  if (!title) problems.push(`${fileName}: first heading must look like "# JIRA-001: Title"`);
   else if (title[1] !== idFromName) {
     problems.push(`${fileName}: heading ID ${title[1]} does not match the file name`);
   }
-  const field = (name) => new RegExp(`^${name}: (.*)$`, 'm').exec(text)?.[1]?.trim();
+  const field = (name) => {
+    const boldMatch = new RegExp(`^\\*\\*${name}:\\*\\* (.*)$`, 'm').exec(text)?.[1]?.trim();
+    if (boldMatch) return boldMatch;
+    return new RegExp(`^${name}: (.*)$`, 'm').exec(text)?.[1]?.trim();
+  };
   const status = field('Status');
   if (!status || !STATUSES.includes(status)) {
     problems.push(`${fileName}: Status must be one of ${STATUSES.join(', ')}`);

@@ -75,11 +75,11 @@ Three agents live in [.github/agents/](./.github/agents) and use the Playwright 
 (`.vscode/mcp.json`, started with `npx playwright run-test-mcp-server`; no extra dependency).
 Open the repo in VS Code and pick the agent in Copilot Chat.
 
-| Agent                       | Does                                                                                      | Never                                         |
-| --------------------------- | ----------------------------------------------------------------------------------------- | --------------------------------------------- |
-| `playwright-test-planner`   | Explores the pages and writes `test-cases/<element>-handling.md` and card files           | Writes code or opens PRs                      |
-| `playwright-test-generator` | Writes page, assertions, fixture and test code for approved cards; prepares the card's PR | Weakens assertions, skips tests, merges       |
-| `playwright-test-healer`    | Fixes locators and synchronisation on `<ID>-fix` branches, with evidence                  | Changes assertions or expected values, merges |
+| Agent                       | Model    | Does                                                                                       | Never                                         |
+| --------------------------- | -------- | ------------------------------------------------------------------------------------------ | --------------------------------------------- |
+| `playwright-test-planner`   | Opus 4.1 | Explores the Playground pages and writes `test-cases/<element>-handling.md` and card files | Writes code or opens PRs                      |
+| `playwright-test-generator` | Opus 4.1 | Writes page, assertions, fixture and test code for approved cards; prepares the card's PR  | Weakens assertions, skips tests, merges       |
+| `playwright-test-healer`    | Opus 4.1 | Fixes locators and synchronisation on `<ID>-fix` branches, with evidence                   | Changes assertions or expected values, merges |
 
 Daily flow: planner writes the test cases for the day's card, a human approves them, generator
 implements every element on the card branch, then the one PR goes through checks and human review.
@@ -109,6 +109,20 @@ runs after it. Playwright closes the browser and context after every test, pass 
 Valid names, paths and headings live in `config/playground-pages.constant.ts` (44 pages). The
 browser tab title is not used to identify a page, because most pages share the same one.
 
+## The six JIRA cards
+
+The 44 pages of the Selenium Playground are split into 6 feature cards, each covering related UI
+patterns and interactions:
+
+| Card         | Title                                                       | Pages                                                                                                                                                                         | Coverage |
+| ------------ | ----------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| **JIRA-001** | Forms and Input Handling                                    | Simple Form Demo, Input Form Submit, Ajax Form Submit, Checkbox Demo, Radio Buttons Demo, Key Press, Upload File Demo                                                         | 7 pages  |
+| **JIRA-002** | Dropdowns, Select Lists and Date Pickers                    | Select Dropdown List, JQuery Select dropdown, Bootstrap List Box, JQuery List Box, Data List Filter, Bootstrap Date Picker, JQuery Date Picker                                | 7 pages  |
+| **JIRA-003** | Tables — Data Download, Search, Filter, Sort and Pagination | Table Data Download, Table Data Search, Table Filter, Table Pagination, Table Sort & Search                                                                                   | 5 pages  |
+| **JIRA-004** | Alerts, Modals, Windows and Progress Indicators             | Javascript Alerts, Bootstrap Alerts, Bootstrap Modals, Window Popup Modal, Progress Bar Modal, Bootstrap Progress bar                                                         | 6 pages  |
+| **JIRA-005** | Frames, DOM and Advanced Mouse Interactions                 | iFrame Demo, Nested Frames, Shadow DOM, Virtual DOM, Hover Demo, Drag and Drop, Drag & Drop Sliders, Context Menu, Overlapped Element                                         | 9 pages  |
+| **JIRA-006** | File Operations, Dynamic Content and Edge Cases             | Download File Demo, File Download, JQuery Download Progress bars, Status Codes, Dynamic Data Loading, To-Do App, Auto Healing, Broken Image, Geolocation Testing, Redirection | 10 pages |
+
 ## Card commands
 
 Plain terminal commands. Replace `JIRA-001` with your card. Run them on the card's branch.
@@ -121,6 +135,7 @@ Plain terminal commands. Replace `JIRA-001` with your card. Run them on the card
 | -    | `npm run status JIRA-001`   | Anyone         | Shows state, case count and whether the plan changed                                                                                           |
 | -    | `npm run revoke JIRA-001`   | Human          | Returns an approved card to `planned` so the plan can be edited                                                                                |
 | -    | `npm run done JIRA-001`     | Generator      | Marks the card `generated` once verify and tests pass                                                                                          |
+| -    | `npm run board`             | Anyone         | Shows all 6 JIRA cards, their status and case count in a dashboard                                                                             |
 
 The planner and generator are Copilot agents, so the AI part is typed in Copilot Chat. Everything
 else is a terminal command.
@@ -137,13 +152,22 @@ The five status lines in a card file are managed by these commands only. Do not 
 ## Test reports dashboard
 
 Tests write Allure results (`allure-results/`). Each published run becomes a numbered build in a
-password-protected dashboard served by Docker, with a build dropdown (Latest or any build number),
-summary cards, a pass-rate trend and the full Allure report.
+password-protected dashboard served by Docker, with a build dropdown, summary cards, a pass-rate trend
+and the full Allure report.
+
+**Public vs Private:**
+
+- The **latest build** is visible publicly on GitHub Pages (no login required), showing just a sample
+  report to demonstrate test coverage and pass rate.
+- **All builds and history** are available only in the private password-protected dashboard at
+  `http://localhost:8088` with login credentials from `.env`.
+- To view an older build's full report, request access: **[email report-access@your-email.com](mailto:prathamesh.d.ingale@gmail.com)** with
+  your build number or date. We will provide temporary credentials.
 
 ```bash
 # one-off: put DASHBOARD_USER and DASHBOARD_PASSWORD in .env (see .env.example)
 npm test                      # writes allure-results/
-npm run report:publish        # creates the next build in report-site/
+npm run report:publish        # creates the next build in report-site/ and on GitHub Pages
 npm run dashboard:up          # http://localhost:8088, log in with the .env credentials
 ```
 
@@ -197,11 +221,9 @@ external Selenium Playground being available.
 - [x] `SETUP-004` — card and test-case templates with an ID validator
 - [x] `SETUP-005` — Playwright MCP config and planner/generator/healer agents with human approval gates
 - [x] `SETUP-006` — `setup` fixture, page registry, one card per day, approval fields
-- [x] `SETUP-007` — guarded card commands (plan, approve, generate) and fingerprinting
-- [x] `SETUP-008` — Allure reporting and password-protected Docker dashboard
-- [ ] `JIRA-001` — first card (planner → approval → generator → one PR)
-- [ ] Add AI review and the 24h/48h stale-PR reminder
-- [ ] Add failure triage and healer PR workflow
+- [x] `SETUP-007` — 6 JIRA cards split by feature, rewritten agents, card status board, public
+      sample report on GitHub Pages, full builds in private dashboard
+- [ ] `JIRA-001` — Forms and Input Handling (planner → approval → generator → merge)
 
 ## Security
 

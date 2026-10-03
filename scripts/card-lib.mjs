@@ -44,15 +44,15 @@ export function countCases(cardId, filesByName) {
 }
 
 export function readField(text, name) {
-  return new RegExp(`^${name}: (.*)$`, 'm').exec(text)?.[1]?.trim();
+  return new RegExp(`^\\*\\*${name}:\\*\\* (.*)$`, 'm').exec(text)?.[1]?.trim();
 }
 
-/** Replaces existing `Name: value` lines. Every field must already exist in the card file. */
+/** Replaces existing `**Name:** value` lines. Every field must already exist in the card file. */
 export function writeFields(text, updates) {
   return Object.entries(updates).reduce((current, [name, value]) => {
-    const line = new RegExp(`^${name}: .*$`, 'm');
-    if (!line.test(current)) throw new Error(`Card file has no "${name}:" line`);
-    return current.replace(line, `${name}: ${value}`);
+    const line = new RegExp(`^\\*\\*${name}:\\*\\* .*$`, 'm');
+    if (!line.test(current)) throw new Error(`Card file has no "**${name}:**" line`);
+    return current.replace(line, `**${name}:** ${value}`);
   }, text);
 }
 
@@ -96,4 +96,22 @@ export function checkAction({ cardId, action, cardText, mainCardText, branch, fi
       reasons.push(`Only an approved card can be revoked (now: ${status}).`);
   }
   return reasons;
+}
+
+/** Extracts title from card file. */
+export function readTitle(cardText) {
+  return new RegExp(`^# (JIRA-\\d{3}: .*)$`, 'm').exec(cardText)?.[1] ?? 'Unknown';
+}
+
+/** Summarizes a card's state for the status board. */
+export function cardSummary(cardId, cardText, caseCount) {
+  const status = readField(cardText, 'Status');
+  const title = readTitle(cardText);
+  const desc =
+    status === 'planned'
+      ? 'plan pending approval'
+      : status === 'approved'
+        ? `approved by ${readField(cardText, 'Approved by')} on ${readField(cardText, 'Approved on')}`
+        : `generated on ${readField(cardText, 'Code generated on')}`;
+  return `${title} — ${caseCount} cases, ${desc}`;
 }
