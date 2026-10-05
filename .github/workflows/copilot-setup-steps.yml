@@ -1,11 +1,9 @@
 name: Copilot Setup Steps
 
+# This workflow configures the environment for GitHub Copilot Agent
 on:
   workflow_dispatch:
   push:
-    paths:
-      - .github/workflows/copilot-setup-steps.yml
-  pull_request:
     paths:
       - .github/workflows/copilot-setup-steps.yml
 
@@ -13,6 +11,7 @@ permissions:
   contents: read
 
 jobs:
+  # The job MUST be called 'copilot-setup-steps' to be recognized by GitHub Copilot Agent
   copilot-setup-steps:
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -31,3 +30,6 @@ jobs:
 
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
+
+      - name: Verify environment setup
+        run: npm run verify
