@@ -3,6 +3,8 @@ name: Playwright
 on:
   pull_request:
     branches: [main]
+    paths-ignore:
+      - 'README.md'
   workflow_dispatch:
 
 permissions:
@@ -30,12 +32,13 @@ jobs:
         run: npm ci
 
       - name: Install Chromium
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install --with-deps chromium || npx playwright install chromium
 
       - name: Verify formatting, lint, and types
         run: npm run verify
 
       - name: Run Playwright tests
+        id: tests
         run: npm test
         env:
           CI: 'true'

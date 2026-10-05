@@ -2,7 +2,7 @@ name: Nightly Playwright
 
 on:
   schedule:
-    - cron: '30 20 * * *'
+    - cron: '30 20 * * *' # Daily at 20:30 UTC
   workflow_dispatch:
 
 permissions:
@@ -30,12 +30,13 @@ jobs:
         run: npm ci
 
       - name: Install Chromium
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install --with-deps chromium || npx playwright install chromium
 
       - name: Verify formatting, lint, and types
         run: npm run verify
 
       - name: Run full Playwright suite
+        id: nightly-test
         run: npm test
         env:
           CI: 'true'
